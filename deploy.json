@@ -298,7 +298,7 @@
                                 },
                                 {
                                     "Effect": "Allow",
-                                    "Action": "codepipeline:StartPipelineExecution",
+                                    "Action": "codepipeline:*",
                                     "Resource": [
                                         { "Fn::Join": [ ":", [
                                             "arn:aws:codepipeline:",
