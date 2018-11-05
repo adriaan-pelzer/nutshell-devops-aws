@@ -165,7 +165,6 @@
             "Properties": {
                 "Name": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "pipeline" ] ] },
                 "RoleArn": { "Fn::GetAtt": [ "PipelineRole", "Arn" ] },
-                "RestartExecutionOnUpdate": true,
                 "Stages": [
                     {
                         "Name": "Source",
