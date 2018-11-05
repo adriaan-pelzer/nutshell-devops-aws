@@ -309,6 +309,7 @@
                     "source": [ "aws.codecommit" ],
                     "detail-type": [ "CodeCommit Repository State Change" ],
                     "resources": [ { "Fn::GetAtt": [ "Repository", "Arn" ] } ],
+                    "region": [ { "Ref": "AWS::Region" } ],
                     "detail": {
                         "event": [
                             "referenceCreated",
