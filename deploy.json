@@ -288,17 +288,8 @@
                             "Version": "2012-10-17",
                             "Statement": [
                                 {
-                                    "Action": [
-                                        "logs:CreateLogGroup",
-                                        "logs:CreateLogStream",
-                                        "logs:PutLogEvents"
-                                    ],
-                                    "Resource": "arn:aws:logs:*:*:*",
-                                    "Effect": "Allow"
-                                },
-                                {
                                     "Effect": "Allow",
-                                    "Action": "codepipeline:*",
+                                    "Action": "codepipeline:StartPipelineExecution",
                                     "Resource": [
                                         { "Fn::Join": [ ":", [
                                             "arn:aws:codepipeline",
