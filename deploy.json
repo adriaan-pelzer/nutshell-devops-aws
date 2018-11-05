@@ -11,35 +11,20 @@
         "ArtifactStore": {
             "Type": "AWS::S3::Bucket",
             "Properties": {
-                "BucketName": { "Fn::Join": [ "-", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" },
-                    "artifact-store"
-                ] ] }
+                "BucketName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "artifact-store" ] ] }
             }
         },
         "Repository": {
             "Type": "AWS::CodeCommit::Repository",
             "Properties": {
-                "RepositoryDescription": { "Fn::Join": [ " ", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" },
-                    "repository"
-                ] ] },
-                "RepositoryName": { "Fn::Join": [ "-", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" }
-                ] ] }
+                "RepositoryDescription": { "Fn::Join": [ " ", [ { "Ref": "Platform" }, { "Ref": "Service" }, "repository" ] ] },
+                "RepositoryName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" } ] ] }
             }
         },
         "CodeBuildProjectRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
-                "RoleName": { "Fn::Join": [ "-", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" },
-                    "codebuild-project-role"
-                ] ] },
+                "RoleName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "codebuild-project-role" ] ] },
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -55,11 +40,7 @@
                 "Path": "/",
                 "Policies": [
                     {
-                        "PolicyName": { "Fn::Join": [ "-", [
-                            { "Ref": "Platform" },
-                            { "Ref": "Service" },
-                            "codebuild-project-policy"
-                        ] ] },
+                        "PolicyName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "codebuild-project-policy" ] ] },
                         "PolicyDocument": {
                             "Version": "2012-10-17",
                             "Statement": [
@@ -73,21 +54,10 @@
                                     "Effect": "Allow"
                                 },
                                 {
-                                    "Action": [
-                                        "s3:*"
-                                    ],
+                                    "Action": [ "s3:*" ],
                                     "Resource": [
-                                        { "Fn::GetAtt": [
-                                            "ArtifactStore",
-                                            "Arn"
-                                        ] },
-                                        { "Fn::Join": [ "/", [
-                                            { "Fn::GetAtt": [
-                                                "ArtifactStore",
-                                                "Arn"
-                                            ] },
-                                            "*"
-                                        ] ] }
+                                        { "Fn::GetAtt": [ "ArtifactStore", "Arn" ] },
+                                        { "Fn::Join": [ "/", [ { "Fn::GetAtt": [ "ArtifactStore", "Arn" ] }, "*" ] ] }
                                     ],
                                     "Effect": "Allow"
                                 }
@@ -100,77 +70,43 @@
         "CodeBuildProject": {
             "Type": "AWS::CodeBuild::Project",
             "Properties": {
-                "Artifacts": {
-                    "Type": "CODEPIPELINE"
-                },
-                "Cache": {
-                    "Type" : "NO_CACHE"
-                },
+                "Artifacts": { "Type": "CODEPIPELINE" },
+                "Cache": { "Type" : "NO_CACHE" },
                 "Environment": {
                     "ComputeType": "BUILD_GENERAL1_SMALL",
                     "Image": "aws/codebuild/nodejs:10.1.0",
                     "Type": "LINUX_CONTAINER",
                     "PrivilegedMode": true
                 },
-                "Name": { "Fn::Join": [ "-", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" },
-                    "codebuild-project"
-                ] ] },
-                "ServiceRole": { "Fn::GetAtt": [
-                    "CodeBuildProjectRole",
-                    "Arn"
-                ] },
-                "Source": {
-                    "Type": "CODEPIPELINE"
-                }
+                "Name": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "codebuild-project" ] ] },
+                "ServiceRole": { "Fn::GetAtt": [ "CodeBuildProjectRole", "Arn" ] },
+                "Source": { "Type": "CODEPIPELINE" }
             }
         },
         "PipelineRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
-                "RoleName": { "Fn::Join": [ "-", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" },
-                    "pipeline-role"
-                ] ] },
+                "RoleName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "pipeline-role" ] ] },
                 "AssumeRolePolicyDocument": {
                     "Version" : "2012-10-17",
                     "Statement": [ {
                         "Effect": "Allow",
-                        "Principal": {
-                            "Service": [ "codepipeline.amazonaws.com" ]
-                        },
+                        "Principal": { "Service": [ "codepipeline.amazonaws.com" ] },
                         "Action": [ "sts:AssumeRole" ]
                     } ]
                 },
                 "Path": "/",
                 "Policies": [
                     {
-                        "PolicyName": { "Fn::Join": [ "-", [
-                            { "Ref": "Platform" },
-                            { "Ref": "Service" },
-                            "pipeline-role-policy"
-                        ] ] },
+                        "PolicyName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "pipeline-role-policy" ] ] },
                         "PolicyDocument": {
                             "Version": "2012-10-17",
                             "Statement": [
                                 {
-                                    "Action": [
-                                        "s3:*"
-                                    ],
+                                    "Action": [ "s3:*" ],
                                     "Resource": [
-                                        { "Fn::GetAtt": [
-                                            "ArtifactStore",
-                                            "Arn"
-                                        ] },
-                                        { "Fn::Join": [ "/", [
-                                            { "Fn::GetAtt": [
-                                                "ArtifactStore",
-                                                "Arn"
-                                            ] },
-                                            "*"
-                                        ] ] }
+                                        { "Fn::GetAtt": [ "ArtifactStore", "Arn" ] },
+                                        { "Fn::Join": [ "/", [ { "Fn::GetAtt": [ "ArtifactStore", "Arn" ] }, "*" ] ] }
                                     ],
                                     "Effect": "Allow"
                                 },
@@ -179,10 +115,7 @@
                                         "codebuild:BatchGetBuilds",
                                         "codebuild:StartBuild"
                                     ],
-                                    "Resource": { "Fn::GetAtt": [
-                                        "CodeBuildProject",
-                                        "Arn"
-                                    ] },
+                                    "Resource": { "Fn::GetAtt": [ "CodeBuildProject", "Arn" ] },
                                     "Effect": "Allow"
                                 },
                                 {
@@ -193,10 +126,7 @@
                                         "codecommit:GetUploadArchiveStatus",
                                         "codecommit:CancelUploadArchive"
                                     ],
-                                    "Resource": { "Fn::GetAtt": [
-                                        "Repository",
-                                        "Arn"
-                                    ] },
+                                    "Resource": { "Fn::GetAtt": [ "Repository", "Arn" ] },
                                     "Effect": "Allow"
                                 },
                                 {
@@ -212,11 +142,7 @@
                                         { "Ref": "AWS::AccountId" },
                                         { "Fn::Join": [ "/", [
                                             "stack",
-                                            { "Fn::Join": [ "-", [
-                                                { "Ref": "Platform" },
-                                                { "Ref": "Service" },
-                                                "stack"
-                                            ] ] },
+                                            { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "stack" ] ] },
                                             "*"
                                         ] ] }
                                     ] ] }
@@ -224,13 +150,8 @@
                                     "Effect": "Allow"
                                 },
                                 {
-                                    "Action": [
-                                        "iam:PassRole"
-                                    ],
-                                    "Resource": { "Fn::GetAtt": [
-                                        "CloudformationRole",
-                                        "Arn"
-                                    ] },
+                                    "Action": [ "iam:PassRole" ],
+                                    "Resource": { "Fn::GetAtt": [ "CloudformationRole", "Arn" ] },
                                     "Effect": "Allow"
                                 }
                             ]
@@ -242,11 +163,7 @@
         "Pipeline": {
             "Type": "AWS::CodePipeline::Pipeline",
             "Properties": {
-                "Name": { "Fn::Join": [ "-", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" },
-                    "pipeline"
-                ] ] },
+                "Name": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "pipeline" ] ] },
                 "RoleArn": { "Fn::GetAtt": [ "PipelineRole", "Arn" ] },
                 "RestartExecutionOnUpdate": true,
                 "Stages": [
@@ -262,15 +179,10 @@
                                     "Provider": "CodeCommit"
                                 },
                                 "OutputArtifacts": [
-                                    {
-                                        "Name": "SourceOutput"
-                                    }
+                                    { "Name": "SourceOutput" }
                                 ],
                                 "Configuration": {
-                                    "RepositoryName": { "Fn::GetAtt": [
-                                        "Repository",
-                                        "Name"
-                                    ] },
+                                    "RepositoryName": { "Fn::GetAtt": [ "Repository", "Name" ] },
                                     "BranchName": "master",
                                     "PollForSourceChanges": false
                                 }
@@ -282,25 +194,15 @@
                         "Actions": [
                             {
                                 "Name": "BuildAction",
-                                "InputArtifacts": [
-                                    {
-                                        "Name": "SourceOutput"
-                                    }
-                                ],
+                                "InputArtifacts": [ { "Name": "SourceOutput" } ],
                                 "ActionTypeId": {
                                     "Category": "Build",
                                     "Owner": "AWS",
                                     "Version": "1",
                                     "Provider": "CodeBuild"
                                 },
-                                "Configuration": {
-                                    "ProjectName": { "Ref": "CodeBuildProject" } 
-                                },
-                                "OutputArtifacts": [
-                                    {
-                                        "Name": "BuildOutput"
-                                    }
-                                ]
+                                "Configuration": { "ProjectName": { "Ref": "CodeBuildProject" } },
+                                "OutputArtifacts": [ { "Name": "BuildOutput" } ]
                             }
                         ]
                     },
@@ -309,14 +211,7 @@
                         "Actions": [
                             {
                                 "Name": "DeployAction",
-                                "InputArtifacts": [
-                                    {
-                                        "Name": "SourceOutput"
-                                    },
-                                    {
-                                        "Name": "BuildOutput"
-                                    }
-                                ],
+                                "InputArtifacts": [ { "Name": "SourceOutput" }, { "Name": "BuildOutput" } ],
                                 "ActionTypeId": {
                                     "Category": "Deploy",
                                     "Owner": "AWS",
@@ -324,16 +219,9 @@
                                     "Provider": "CloudFormation"
                                 },
                                 "Configuration": {
-                                    "StackName": { "Fn::Join": [ "-", [
-                                        { "Ref": "Platform" },
-                                        { "Ref": "Service" },
-                                        "stack"
-                                    ] ] },
+                                    "StackName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "stack" ] ] },
                                     "ActionMode": "REPLACE_ON_FAILURE",
-                                    "RoleArn": { "Fn::GetAtt": [
-                                        "CloudformationRole",
-                                        "Arn"
-                                    ] },
+                                    "RoleArn": { "Fn::GetAtt": [ "CloudformationRole", "Arn" ] },
                                     "Capabilities": "CAPABILITY_NAMED_IAM",
                                     "TemplateConfiguration": "BuildOutput::cfn-config.json",
                                     "TemplatePath": "SourceOutput::cfn-template.json"
@@ -342,57 +230,33 @@
                         ]
                     }
                 ],
-                "ArtifactStore": {
-                    "Type": "S3",
-                    "Location": { "Ref": "ArtifactStore" }
-                }
+                "ArtifactStore": { "Type": "S3", "Location": { "Ref": "ArtifactStore" } }
             }
         },
         "CloudformationRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
-                "RoleName": { "Fn::Join": [ "-", [
-                    { "Ref": "Platform" },
-                    { "Ref": "Service" },
-                    "cloudformation-role"
-                ] ] },
+                "RoleName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "cloudformation-role" ] ] },
                 "AssumeRolePolicyDocument": {
                     "Version" : "2012-10-17",
                     "Statement": [ {
                         "Effect": "Allow",
-                        "Principal": {
-                            "Service": [ "cloudformation.amazonaws.com" ]
-                        },
+                        "Principal": { "Service": [ "cloudformation.amazonaws.com" ] },
                         "Action": [ "sts:AssumeRole" ]
                     } ]
                 },
                 "Path": "/",
                 "Policies": [
                     {
-                        "PolicyName": { "Fn::Join": [ "-", [
-                            { "Ref": "Platform" },
-                            { "Ref": "Service" },
-                            "cloudformation-role-policy"
-                        ] ] },
+                        "PolicyName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "cloudformation-role-policy" ] ] },
                         "PolicyDocument": {
                             "Version": "2012-10-17",
                             "Statement": [
                                 {
-                                    "Action": [
-                                        "s3:*"
-                                    ],
+                                    "Action": [ "s3:*" ],
                                     "Resource": [
-                                        { "Fn::GetAtt": [
-                                            "ArtifactStore",
-                                            "Arn"
-                                        ] },
-                                        { "Fn::Join": [ "/", [
-                                            { "Fn::GetAtt": [
-                                                "ArtifactStore",
-                                                "Arn"
-                                            ] },
-                                            "*"
-                                        ] ] }
+                                        { "Fn::GetAtt": [ "ArtifactStore", "Arn" ] },
+                                        { "Fn::Join": [ "/", [ { "Fn::GetAtt": [ "ArtifactStore", "Arn" ] }, "*" ] ] }
                                     ],
                                     "Effect": "Allow"
                                 }
@@ -410,11 +274,7 @@
                     "Statement": [
                         {
                             "Effect": "Allow",
-                            "Principal": {
-                                "Service": [
-                                    "events.amazonaws.com"
-                                ]
-                            },
+                            "Principal": { "Service": [ "events.amazonaws.com" ] },
                             "Action": "sts:AssumeRole"
                         }
                     ]
@@ -448,12 +308,7 @@
                 "EventPattern": {
                     "source": [ "aws.codecommit" ],
                     "detail-type": [ "CodeCommit Repository State Change" ],
-                    "resources": [ { "Fn::Join": [ ":", [
-                        "arn:aws:codecommit",
-                        { "Ref": "AWS::Region" },
-                        { "Ref": "AWS::AccountId" },
-                        { "Fn::GetAtt": [ "Repository", "Name" ] }
-                    ] ] } ],
+                    "resources": [ { "Fn::GetAtt": [ "Repository", "Arn" ] } ],
                     "detail": {
                         "event": [
                             "referenceCreated",
@@ -475,10 +330,7 @@
                             { "Ref": "AWS::AccountId" },
                             { "Ref": "Pipeline" }
                         ] ] },
-                        "RoleArn": { "Fn::GetAtt": [
-                            "EventRole",
-                            "Arn"
-                        ] },
+                        "RoleArn": { "Fn::GetAtt": [ "EventRole", "Arn" ] },
                         "Id": "codepipeline-Pipeline"
                     }
                 ]
