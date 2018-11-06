@@ -6,8 +6,8 @@ REGION="eu-west-1"
 
 declare -A parameters=()
 
-parameters[Platform]="test"
-parameters[Service]="demo"
+parameters[Platform]="root"
+parameters[Service]="deploy"
 
 declare -A tags=()
 
@@ -187,4 +187,5 @@ if [ "${STATE}" == "ROLLBACK"* ]; then
 fi
 
 echo "    changeset execution succeeded"
+
 
