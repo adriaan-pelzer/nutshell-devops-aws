@@ -1,0 +1,18 @@
+{
+    "Parameters": {
+        "Platform": {
+            "Type": "String"
+        },
+        "Service": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "ArtifactStore": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "artifact-store" ] ] }
+            }
+        }
+    }
+}
