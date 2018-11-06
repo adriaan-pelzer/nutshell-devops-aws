@@ -1,5 +1,6 @@
 #!/bin/sh
 
+DOMAIN="adriaanpelzer.com"
 TEMPLATE_FILE="${1}"
 REGION="eu-west-1"
 
@@ -94,11 +95,7 @@ if [ -z "${TEMPLATE_FILE}" ]; then
     exit 1
 fi
 
-#TODO remove
-aws s3 cp ${TEMPLATE_FILE} s3://cfn.adriaanpelzer.com/templates/${TEMPLATE_FILE}
-###
-
-TEMPLATEURL="https://s3-${REGION}.amazonaws.com/cfn.adriaanpelzer.com/templates/${TEMPLATE_FILE}"
+TEMPLATEURL="https://s3-${REGION}.amazonaws.com/cfn.${DOMAIN}/templates/${TEMPLATE_FILE}"
 
 echo "Validating template ..."
 AWSVALIDATE="aws cloudformation validate-template --template-url ${TEMPLATEURL} --region ${REGION}"
