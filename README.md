@@ -3,7 +3,11 @@
 ## Create the following:
 
 ### CodeCommit Repository
-```bootstrap```
+```
+    bootstrap
+```
 
 ### S3 Bucket
-```cfn.adriaanpelzer.com```
+```
+    cfn.adriaanpelzer.com
+```
