@@ -146,7 +146,7 @@ while [[ ${CHANGESETSTATUS} != *_COMPLETE ]] && [[ ${CHANGESETSTATUS} != *FAILED
         echo "*** changeset status call failed"
         exit 1
     fi
-    if [ "${CHANGSETSTATUS}" != "${NEWCHANGESETSTATUS}" ]; then
+    if [ "${CHANGESETSTATUS}" != "${NEWCHANGESETSTATUS}" ]; then
         echo "    ${NEWCHANGESETSTATUS}"
     fi
     CHANGESETSTATUS="${NEWCHANGESETSTATUS}"
