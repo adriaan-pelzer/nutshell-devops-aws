@@ -140,12 +140,16 @@ CHANGESETID="$(${AWSCREATECS} $(build_changeset_parms "${STACKNAME}" "${TEMPLATE
 echo "Checking changeset status ..."
 CHANGESETSTATUS="INIT"
 
-while [ "${CHANGESETSTATUS}" != "CREATE_COMPLETE" ]; do
-    CHANGESETSTATUS="$(aws cloudformation describe-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME} --query "Status" --output text)"
+while [[ ${CHANGESETSTATUS} != *_COMPLETE ]] && [[ ${CHANGESETSTATUS} != *FAILED ]]; do
+    NEWCHANGESETSTATUS="$(aws cloudformation describe-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME} --query "Status" --output text)"
     if [ "$?" != "0" ]; then
         echo "*** changeset status call failed"
         exit 1
     fi
+    if [ "${CHANGSETSTATUS}" != "${NEWCHANGESETSTATUS}" ]; then
+        echo "    ${NEWCHANGESETSTATUS}"
+    fi
+    CHANGESETSTATUS="${NEWCHANGESETSTATUS}"
     sleep 1
 done
 
