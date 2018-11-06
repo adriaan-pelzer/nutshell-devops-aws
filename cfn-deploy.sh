@@ -120,13 +120,13 @@ TAGSTRING="$(build_tag_string)"
 AWSCREATECS="aws cloudformation create-change-set"
 AWSCREATEST="aws cloudformation create-stack"
 
-echo "Creating changeset ..."
-STACKID="${AWSCREATECS} $(build_changeset_parms "${STACKNAME}" "${TEMPLATEURL}" "${CHANGESETNAME}" "${PARAMETERSTRING}" "${CAPABILITYSTRING}" "${TAGSTRING}") --query "StackId" --output text"
+echo "Creating changeset ${CHANGESETNAME} ..."
+STACKID="$(${AWSCREATECS} $(build_changeset_parms "${STACKNAME}" "${TEMPLATEURL}" "${CHANGESETNAME}" "${PARAMETERSTRING}" "${CAPABILITYSTRING}" "${TAGSTRING}") --query 'StackId' --output text)"
 
 if [ "$?" != "0" ]; then
     echo "*** changeset failed"
     echo "(maybe the stack does not exist yet)"
-    echo "Creating stack ..."
+    echo "Creating stack ${STACKNAME} ..."
     STACKID="$(${AWSCREATEST} $(build_stack_parms "${STACKNAME}" "${TEMPLATEURL}" "${PARAMETERSTRING}" "${CAPABILITYSTRING}" "${TAGSTRING}") --query "StackId" --output text)"
     if [ "$?" != "0" ]; then
         echo "*** cannot create stack"
@@ -135,10 +135,15 @@ if [ "$?" != "0" ]; then
 fi
 echo "    changeset created"
 
-CHANGESETID="${AWSCREATECS} $(build_changeset_parms "${STACKNAME}" "${TEMPLATEURL}" "${CHANGESETNAME}" "${PARAMETERSTRING}" "${CAPABILITYSTRING}" "${TAGSTRING}") --query "Id" --output text"
+CHANGESETID="$(${AWSCREATECS} $(build_changeset_parms "${STACKNAME}" "${TEMPLATEURL}" "${CHANGESETNAME}" "${PARAMETERSTRING}" "${CAPABILITYSTRING}" "${TAGSTRING}") --query 'Id' --output text)"
 
 echo "Checking changeset status ..."
 CHANGESETSTATUS="$(aws cloudformation describe-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME} --query "Status" --output text)"
+
+if [ "$?" != "0" ]; then
+    echo "*** changeset status call failed"
+    exit 1
+fi
 
 if [ "${CHANGESETSTATUS}" == "FAILED" ]; then
     echo "*** changeset failed"
@@ -146,9 +151,11 @@ if [ "${CHANGESETSTATUS}" == "FAILED" ]; then
     exit 1
 fi
 
-if [ "$?" != "0" ]; then
-    echo "*** changeset status call failed"
-    exit 1
-fi
-
 echo "    changeset succeeded"
+
+aws cloudformation execute-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME}
+
+while [ 1 ]; do
+    aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text
+    sleep 1
+done
