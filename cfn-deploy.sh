@@ -138,16 +138,15 @@ echo "    changeset created"
 CHANGESETID="$(${AWSCREATECS} $(build_changeset_parms "${STACKNAME}" "${TEMPLATEURL}" "${CHANGESETNAME}" "${PARAMETERSTRING}" "${CAPABILITYSTRING}" "${TAGSTRING}") --query 'Id' --output text)"
 
 echo "Checking changeset status ..."
-CHANGESETSTATUS="$(aws cloudformation describe-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME} --query "Status" --output text)"
+CHANGESETSTATUS="INIT"
 
-if [ "$?" != "0" ]; then
-    echo "*** changeset status call failed"
-    exit 1
-fi
-
-while [ "${CHANGESETSTATUS}" == "CREATE_IN_PROGRESS" ]; do
+while [ "${CHANGESETSTATUS}" != "CREATE_COMPLETE" ]; do
     CHANGESETSTATUS="$(aws cloudformation describe-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME} --query "Status" --output text)"
-    echo "${CHANGESETSTATUS}"
+    if [ "$?" != "0" ]; then
+        echo "*** changeset status call failed"
+        exit 1
+    fi
+    sleep 1
 done
 
 if [ "${CHANGESETSTATUS}" == "FAILED" ]; then
@@ -160,8 +159,12 @@ echo "    changeset succeeded"
 
 echo "Execute changeset ..."
 aws cloudformation execute-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME}
+if [ "$?" != "0" ]; then
+    echo "*** changeset execution failed"
+    exit 1
+fi
 
-STATE="$(aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text)"
+STATE="INIT"
 
 while [[ ${STATE} != *_COMPLETE ]] && [[ ${STATE} != *_FAILED ]]; do
     NEWSTATE="$(aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text)"
