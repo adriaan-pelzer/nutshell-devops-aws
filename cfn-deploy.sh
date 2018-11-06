@@ -160,8 +160,10 @@ echo "    changeset succeeded"
 
 echo "Execute changeset ..."
 aws cloudformation execute-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME}
+
 STATE="$(aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text)"
-while [ "${STATE}" != *"_COMPLETE" ] && [ "${STATE}" != *"_FAILED" ]; do
+
+while [[ ${STATE} != *_COMPLETE ]] && [[ ${STATE} != *_FAILED ]]; do
     NEWSTATE="$(aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text)"
     if [ "${NEWSTATE}" != "${STATE}" ]; then
         echo "    ${NEWSTATE}"

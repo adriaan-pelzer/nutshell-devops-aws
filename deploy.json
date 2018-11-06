@@ -8,12 +8,6 @@
         }
     },
     "Resources": {
-        "ExtraStore": {
-            "Type": "AWS::S3::Bucket",
-            "Properties": {
-                "BucketName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "extra-store" ] ] }
-            }
-        },
         "ArtifactStore": {
             "Type": "AWS::S3::Bucket",
             "Properties": {
