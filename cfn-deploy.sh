@@ -145,6 +145,11 @@ if [ "$?" != "0" ]; then
     exit 1
 fi
 
+while [ "${CHANGESETSTATUS}" == "CREATE_IN_PROGRESS" ]; do
+    CHANGESETSTATUS="$(aws cloudformation describe-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME} --query "Status" --output text)"
+    echo "${CHANGESETSTATUS}"
+done
+
 if [ "${CHANGESETSTATUS}" == "FAILED" ]; then
     echo "*** changeset failed"
     aws cloudformation describe-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME} --query "StatusReason" --output text
@@ -153,9 +158,27 @@ fi
 
 echo "    changeset succeeded"
 
+echo "Execute changeset ..."
 aws cloudformation execute-change-set --change-set-name ${CHANGESETNAME} --region ${REGION} --stack-name ${STACKNAME}
-
-while [ 1 ]; do
-    aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text
+STATE="$(aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text)"
+while [ "${STATE}" != *"_COMPLETE" ] && [ "${STATE}" != *"_FAILED" ]; do
+    NEWSTATE="$(aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text)"
+    if [ "${NEWSTATE}" != "${STATE}" ]; then
+        echo "    ${NEWSTATE}"
+    fi
+    STATE="${NEWSTATE}"
     sleep 1
 done
+
+if [ "${STATE}" == *"_FAILED" ]; then
+    echo "*** changeset execution failed"
+    exit 1
+fi
+
+if [ "${STATE}" == "ROLLBACK"* ]; then
+    echo "    changeset execution rolled back"
+    exit 1
+fi
+
+echo "    changeset execution succeeded"
+
