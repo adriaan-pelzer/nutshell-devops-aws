@@ -227,6 +227,44 @@
                                     ],
                                     "Resource": { "Fn::GetAtt": [ "Repository", "Arn" ] },
                                     "Effect": "Allow"
+                                },
+                                {
+                                    "Action": [
+                                        "s3:PutObject",
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": { "Fn::Join": [ "/", [
+                                        { "Fn::GetAtt": [ "CloudformationTemplateBucket", "Arn" ] },
+                                        "*"
+                                    ] ] },
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Action": [
+                                        "s3:CreateBucket",
+                                        "s3:DeleteBucket",
+                                        "s3:PutObject",
+                                        "cloudformation:ValidateTemplate",
+                                        "cloudformation:CreateStack",
+                                        "cloudformation:DescribeStacks",
+                                        "cloudformation:CreateChangeSet",
+                                        "cloudformation:DescribeChangeSet",
+                                        "cloudformation:ExecuteChangeSet",
+                                        "codecommit:CreateRepository",
+                                        "codecommit:DeleteRepository",
+                                        "codebuild:CreateProject",
+                                        "codebuild:DeleteProject",
+                                        "codepipeline:CreatePipeline",
+                                        "codepipeline:DeletePipeline",
+                                        "iam:CreateRole",
+                                        "iam:DeleteRole",
+                                        "iam:CreatePolicy",
+                                        "iam:DeletePolicy",
+                                        "events:CreateRule",
+                                        "events:DeleteRule"
+                                    ],
+                                    "Resource": "*",
+                                    "Effect": "Allow"
                                 }
                             ]
                         }

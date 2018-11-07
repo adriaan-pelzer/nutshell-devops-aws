@@ -34,8 +34,8 @@ TEMPLATE_FILE="${STACK_TYPE}.json"
 
 declare -A parameters=()
 
-parameters[Platform]="root"
-parameters[Service]="deploy"
+parameters[Platform]="${PLATFORM}"
+parameters[Service]="${SERVICE}"
 
 declare -A tags=()
 
