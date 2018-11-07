@@ -1,0 +1,213 @@
+{
+    "Resources": {
+        "AdminUser": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "LoginProfile": {
+                    "Password": "root",
+                    "PasswordResetRequired": true
+                },
+                "Path": "/",
+                "Policies": [ 
+                    {
+                        "PolicyName": "new-pipeline-admin-user",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Sid": "AllowAll",
+                                    "Action": [
+                                        "*"
+                                    ],
+                                    "Resource": "*",
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Sid": "EnforceMFA_Disabled_Change_Effect_To_Deny_To_Enable",
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "*"
+                                    ],
+                                    "Resource": "*",
+                                    "Condition": { "BoolIfExists": { "aws:MultiFactorAuthPresent": false } }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "UserName": "root"
+            }
+        },
+        "CloudformationTemplateBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": "new-pipeline-cloudformation-template-bucket"
+            }
+        },
+        "Repository": {
+            "Type": "AWS::CodeCommit::Repository",
+            "Properties": {
+                "RepositoryDescription": "A repository that triggers a codebuild project that creates a new code pipeline",
+                "RepositoryName": "new-pipeline",
+                "Triggers": [
+                    {
+                        "Name": "new-pipeline-trigger",
+                        "DestinationArn": { "Fn::GetAtt": [ "LambdaTrigger", "Arn" ] },
+                        "Events": [ "all" ]
+                    }
+                ]
+            }
+        },
+        "LambdaTriggerInvokePermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "Principal": "codecommit.amazonaws.com",
+                "FunctionName": { "Fn::GetAtt": [ "LambdaTrigger", "Arn" ] }
+            }
+        },
+        "LambdaTriggerRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": "new-pipeline-lambda-role",
+                "AssumeRolePolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [ {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [ "lambda.amazonaws.com" ]
+                        },
+                        "Action": [ "sts:AssumeRole" ]
+                    } ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "new-pipeline-lambda-policy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*",
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Action": [
+                                        "codebuild:StartBuild"
+                                    ],
+                                    "Resource": { "Fn::GetAtt": [ "CodeBuildProject", "Arn" ] },
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "LambdaTrigger": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "Zipfile": { "Fn::Join": [ "\n", [
+                        "module.exports.handler = ( event, context, callback ) => {",
+                        "    console.log ( event );",
+                        "    return callback ( null, 'DONE' );",
+                        "};"
+                    ] ] }
+                },
+                "FunctionName": "new-pipeline-lambda",
+                "Handler": "index.handler",
+                "MemorySize": "128",
+                "Timeout": "30",
+                "Role": { "Fn::GetAtt": [ "LambdaTriggerRole", "Arn" ] },
+                "Runtime": "nodejs8.10"
+            }
+        },
+        "CodeBuildProjectRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": "new-pipeline-codebuild-project-role",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "codebuild.amazonaws.com"
+                            }
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": { "Fn::Join": [ "-", [ { "Ref": "ServiceName" }, "codebuild-project-policy" ] ] },
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*",
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Action": [
+                                        "codecommit:GitPull"
+                                    ],
+                                    "Resource": { "Fn::GetAtt": [ "Repository", "Arn" ] },
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "CodeBuildProject": {
+            "Type": "AWS::CodeBuild::Project",
+            "Properties": {
+                "Name": "new-pipeline-codebuild-project",
+                "Description": "A codeBuild project that creates new code pipelines",
+                "Artifacts": {
+                    "Type": "NO_ARTIFACTS"
+                },
+                "BadgeEnabled": true,
+                "Environment": {
+                    "EnvironmentVariables": [
+                        {
+                            "Name": "CFN_TEMPLATE_BUCKET",
+                            "Value": { "Ref": "CloudformationTemplateBucket" }
+                        }
+                    ],
+                    "ComputeType": "BUILD_GENERAL1_SMALL",
+                    "Image": "aws/codebuild/nodejs:10.1.0",
+                    "Type": "LINUX_CONTAINER",
+                    "PrivilegedMode": false
+                },
+                "ServiceRole": { "Fn::GetAtt": [ "CodeBuildProjectRole", "Arn" ] },
+                "Source": {
+                    "BuildSpec": { "Fn::Join": [ "\n", [
+                        "version: 0.2",
+                        "",
+                        "phases:",
+                        "  build:",
+                        "    commands:",
+                        "      - /bin/bash build-pipeline.sh"
+                    ] ] },
+                    "Type": "CODECOMMIT",
+                    "Location": { "Fn::GetAtt": [ "Repository", "CloneUrlHttp" ] }
+                }
+            }
+        }
+    }
+}
