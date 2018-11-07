@@ -1,0 +1,18 @@
+{
+    "Parameters": {
+        "Platform": {
+            "Type": "String"
+        },
+        "Service": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "bucket" ] ] }
+            }
+        }
+    }
+}

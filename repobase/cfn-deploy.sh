@@ -157,8 +157,33 @@ if [ "$?" != "0" ]; then
         echo "*** cannot create stack"
         exit 1
     fi
+    echo "Checking stack status ..."
+    STATE="INIT"
+
+    while [[ ${STATE} != *_COMPLETE ]] && [[ ${STATE} != *_FAILED ]]; do
+        NEWSTATE="$(aws cloudformation describe-stacks --stack-name ${STACKNAME} --region ${REGION} --query 'Stacks[*].StackStatus' --output text)"
+        if [ "${NEWSTATE}" != "${STATE}" ]; then
+            echo "    ${NEWSTATE}"
+        fi
+        STATE="${NEWSTATE}"
+        sleep 1
+    done
+
+    if [[ ${STATE} == *_FAILED ]]; then
+        echo "*** stack creation failed"
+        exit 1
+    fi
+
+    if [[ ${STATE} == ROLLBACK* ]]; then
+        echo "*** stack creation rolled back"
+        exit 1
+    fi
+
+    echo "    stack created successfully"
+    exit 0
+else
+    echo "    changeset created successfully"
 fi
-echo "    changeset created"
 
 CHANGESETID="$(${AWSCREATECS} $(build_changeset_parms "${STACKNAME}" "${TEMPLATEURL}" "${CHANGESETNAME}" "${PARAMETERSTRING}" "${CAPABILITYSTRING}" "${TAGSTRING}") --query 'Id' --output text)"
 
@@ -204,16 +229,14 @@ while [[ ${STATE} != *_COMPLETE ]] && [[ ${STATE} != *_FAILED ]]; do
     sleep 1
 done
 
-if [ "${STATE}" == *"_FAILED" ]; then
+if [[ ${STATE} == *_FAILED ]]; then
     echo "*** changeset execution failed"
     exit 1
 fi
 
-if [ "${STATE}" == "ROLLBACK"* ]; then
+if [[ ${STATE} == ROLLBACK* ]]; then
     echo "    changeset execution rolled back"
     exit 1
 fi
 
 echo "    changeset execution succeeded"
-
-
