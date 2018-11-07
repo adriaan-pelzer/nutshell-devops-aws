@@ -11,19 +11,10 @@ REPONAME="${PLATFORM}-${SERVICE}"
 CLONEURL="$(aws codecommit get-repository --repository-name ${REPONAME} --query 'repositoryMetadata.cloneUrlSsh' --output text)"
 
 if [ "$?" == "0" ]; then
-    git clone ${CLONEURL}
-
-    cd ${REPONAME}
-    #cp -rn ../repobase/* ./
-    cp -r ../repobase/* ./
-    git add . && git commit -m "Repository base"
-    git push origin master
-    cd ..
-    rm -rf ${REPONAME}
-
-    echo "================================================"
-    echo "Now run 'git clone ${CLONEURL}'"
-    echo "================================================"
+    echo "==================================================="
+    echo "Now run 'git clone ${CLONEURL}',"
+    echo "and push the contents of repobase to the repository"
+    echo "==================================================="
 else
     echo "Cannot get repository url"
     exit 1
