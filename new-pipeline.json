@@ -119,32 +119,65 @@
             "Properties": {
                 "Code": {
                     "ZipFile": { "Fn::Join": [ "\n", [
-                        "module.exports.handler = ( event, context, callback ) => {",
-                        "    const tags = ( event.Records || [] ).map (",
-                        "        Record => ( ( Record.codecommit || {} ).references || [] ).find (",
-                        "            reference => reference.ref.match ( '/tags/' ) &&",
                         { "Fn::Join": [ "", [
-                            "                Record.eventSourceARN === '",
-                            { "Fn::GetAtt": [ "Repository", "Arn" ] },
-                            "'"
+                            "const aws = require ( 'aws-sdk' ), codebuild = new aws.CodeBuild ( { region: '",
+                            { "Ref": "AWS::Region" },
+                            "' } );"
                         ] ] },
-                        "        )",
-                        "    ).reduce ( [], ( a, b ) => a.concat ( [ b ] ) ).map (",
-                        "        reference => reference.ref.split ( '/' ) ).map (",
-                        "            ( [ refs, tags, tag ] ) => tag ).map (",
-                        "                tag => tag.split ( '-' )",
-                        "            ).map (",
-                        "                ( [ Platform, Service, StackType ] ) => ( {",
-                        "                   Platform,",
-                        "                   Service,",
-                        "                   StackType,",
-                        "                   CommitId: reference.commit",
-                        "                } )",
+                        "",
+                        "exports.handler = async function ( event, context, callback ) {",
+                        "    try {",
+                        { "Fn::Join": [ ":", [
+                            "        const tags = ( event.Records || [] ).filter ( Record => Record.eventSourceARN === 'arn:aws:codecommit",
+                            { "Ref": "AWS::Region" },
+                            { "Ref": "AWS::AccountId" },
+                            "new-pipeline' ).map ("
+                        ] ] },
+                        "            Record => ( ( Record.codecommit || {} ).references || [] ).filter (",
+                        "                reference => reference.ref.match ( '/tags/' )",
                         "            )",
-                        "        )",
-                        "    );",
-                        "    console.log ( JSON.stringify ( tags ) );",
-                        "    return callback ( null, 'DONE' );",
+                        "        ).reduce ( ( a, b ) => a.concat ( b ), [] ).map (",
+                        "            reference => {",
+                        "                const [ Platform, Service, StackType ] = reference.ref.split ( '/' ).pop ().split ( '-' );",
+                        "",
+                        "                return {",
+                        "                    Platform,",
+                        "                    Service,",
+                        "                    StackType,",
+                        "                    CommitId: reference.commit",
+                        "                };",
+                        "            }",
+                        "        );",
+                        "",
+                        "        for ( const tag of tags ) {",
+                        "            await codebuild.startBuild ( {",
+                        "                projectName: 'new-pipeline-codebuild-project',",
+                        "                environmentVariablesOverride: [",
+                        "                    {",
+                        "                        name: 'PLATFORM',",
+                        "                        value: tag.Platform",
+                        "                    },",
+                        "                    {",
+                        "                        name: 'SERVICE',",
+                        "                        value: tag.Service",
+                        "                    },",
+                        "                    {",
+                        "                        name: 'STACK_TYPE',",
+                        "                        value: tag.StackType",
+                        "                    },",
+                        "                    {",
+                        "                        name: 'COMMIT_ID',",
+                        "                        value: tag.CommitId",
+                        "                    }",
+                        "                ],",
+                        "                sourceVersion: tag.CommitId",
+                        "            } ).promise ().then ( console.log );",
+                        "        }",
+                        "",
+                        "        return callback ( null, 'DONE' );",
+                        "    } catch ( err ) {",
+                        "    return callback ( err.message );",
+                        "    }",
                         "};"
                     ] ] }
                 },
@@ -215,6 +248,10 @@
                         {
                             "Name": "CFN_TEMPLATE_BUCKET",
                             "Value": { "Ref": "CloudformationTemplateBucket" }
+                        },
+                        {
+                            "Name": "CFN_TEMPLATE_BUCKET_DOMAIN_NAME",
+                            "Value": { "Fn::GetAtt": [ "CloudformationTemplateBucket", "DomainName" ] }
                         }
                     ],
                     "ComputeType": "BUILD_GENERAL1_SMALL",
@@ -230,7 +267,7 @@
                         "phases:",
                         "  build:",
                         "    commands:",
-                        "      - /bin/bash build-pipeline.sh"
+                        "      - /bin/bash build.sh"
                     ] ] },
                     "Type": "CODECOMMIT",
                     "Location": { "Fn::GetAtt": [ "Repository", "CloneUrlHttp" ] }
