@@ -246,6 +246,10 @@
                 "Environment": {
                     "EnvironmentVariables": [
                         {
+                            "Name": "REGION",
+                            "Value": { "Ref": "AWS::Region" }
+                        },
+                        {
                             "Name": "CFN_TEMPLATE_BUCKET",
                             "Value": { "Ref": "CloudformationTemplateBucket" }
                         },

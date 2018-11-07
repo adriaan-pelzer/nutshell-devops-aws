@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ -z "${REGION}" ]; then
+    echo "No region specified"
+    exit 1
+fi
+
 if [ -z "${PLATFORM}" ]; then
     echo "No platform specified"
     exit 1
@@ -20,10 +25,12 @@ if [ -z "${COMMIT_ID}" ]; then
     exit 1
 fi
 
-TEMPLATE_BUCKET="$(aws cloudformation describe-stack-resources --stack-name new-pipeline --query 'StackResources[?LogicalResourceId==`CloudformationTemplateBucket`].PhysicalResourceId' --output text)"
-TEMPLATE_FILE="${1}"
-COMMIT_ID="$(git log -n 1 | grep commit | awk '{ print $2 }')"
-REGION="eu-west-1"
+if [ -z "${CFN_TEMPLATE_BUCKET_DOMAIN_NAME}" ]; then
+    echo "No clousformation template bucket domain name specified"
+    exit 1
+fi
+
+TEMPLATE_FILE="${STACK_TYPE}.json"
 
 declare -A parameters=()
 
@@ -116,7 +123,7 @@ if [ -z "${TEMPLATE_FILE}" ]; then
     exit 1
 fi
 
-TEMPLATEURL="https://s3-${REGION}.amazonaws.com/${TEMPLATE_BUCKET}/${COMMIT_ID}/templates/${TEMPLATE_FILE}"
+TEMPLATEURL="https://${CFN_TEMPLATE_BUCKET_DOMAIN_NAME}/${COMMIT_ID}/templates/${TEMPLATE_FILE}"
 
 echo "Validating template ..."
 AWSVALIDATE="aws cloudformation validate-template --template-url ${TEMPLATEURL} --region ${REGION}"
