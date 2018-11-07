@@ -1,7 +1,8 @@
 #!/bin/sh
 
-DOMAIN="adriaanpelzer.com"
+TEMPLATE_BUCKET="$(aws cloudformation describe-stack-resources --stack-name new-pipeline --query 'StackResources[?LogicalResourceId==`CloudformationTemplateBucket`].PhysicalResourceId' --output text)"
 TEMPLATE_FILE="${1}"
+COMMIT_ID="$(git log -n 1 | grep commit | awk '{ print $2 }')"
 REGION="eu-west-1"
 
 declare -A parameters=()
@@ -95,7 +96,7 @@ if [ -z "${TEMPLATE_FILE}" ]; then
     exit 1
 fi
 
-TEMPLATEURL="https://s3-${REGION}.amazonaws.com/cfn.${DOMAIN}/templates/${TEMPLATE_FILE}"
+TEMPLATEURL="https://s3-${REGION}.amazonaws.com/${TEMPLATE_BUCKET}/${COMMIT_ID}/templates/${TEMPLATE_FILE}"
 
 echo "Validating template ..."
 AWSVALIDATE="aws cloudformation validate-template --template-url ${TEMPLATEURL} --region ${REGION}"
@@ -109,7 +110,7 @@ PARAMETERS="$(${AWSVALIDATE} --query "Parameters[*].ParameterKey" --output text 
 CAPABILITIES="$(${AWSVALIDATE} --query "Capabilities[*]" --output text | sed -e 'y/\t/ /')"
 
 STACKNAME="${parameters[Platform]}-${parameters[Service]}-stack"
-CHANGESETNAME="changeset-$(git log -n 1 | grep commit | awk '{ print $2 }')"
+CHANGESETNAME="changeset-${COMMIT_ID}"
 PARAMETERSTRING="$(build_parameter_string ${PARAMETERS})"
 CAPABILITYSTRING="$(build_capability_string ${CAPABILITIES})"
 TAGSTRING="$(build_tag_string)"
