@@ -221,7 +221,7 @@
                             {
                                 "Name": "DeployAction",
                                 "InputArtifacts": [ { "Name": "SourceOutput" }, { "Name": "BuildOutput" } ],
-                                "OutputArtifacts": [ { "Name": "DeployOutput" } ].
+                                "OutputArtifacts": [ { "Name": "DeployOutput" } ],
                                 "ActionTypeId": {
                                     "Category": "Deploy",
                                     "Owner": "AWS",
