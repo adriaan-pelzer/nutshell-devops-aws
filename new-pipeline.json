@@ -23,7 +23,7 @@
                                     "Effect": "Allow"
                                 },
                                 {
-                                    "Sid": "EnforceMFA_Disabled_Change_Effect_To_Deny_To_Enable",
+                                    "Sid": "EnforceMFADisabledChangeEffectToDenyToEnable",
                                     "Effect": "Allow",
                                     "Action": [
                                         "*"
@@ -100,7 +100,12 @@
                                     "Action": [
                                         "codebuild:StartBuild"
                                     ],
-                                    "Resource": { "Fn::GetAtt": [ "CodeBuildProject", "Arn" ] },
+                                    "Resource": { "Fn::Join": [ ":", [
+                                        "arn:aws:codebuild",
+                                        { "Ref": "AWS::Region" },
+                                        { "Ref": "AWS::AccountId" },
+                                        "project/new-pipeline-codebuild-project"
+                                    ] ] },
                                     "Effect": "Allow"
                                 }
                             ]
@@ -113,7 +118,7 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Code": {
-                    "Zipfile": { "Fn::Join": [ "\n", [
+                    "ZipFile": { "Fn::Join": [ "\n", [
                         "module.exports.handler = ( event, context, callback ) => {",
                         "    console.log ( event );",
                         "    return callback ( null, 'DONE' );",

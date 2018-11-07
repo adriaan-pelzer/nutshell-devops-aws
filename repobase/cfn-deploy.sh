@@ -1,5 +1,25 @@
 #!/bin/sh
 
+if [ -z "${PLATFORM}" ]; then
+    echo "No platform specified"
+    exit 1
+fi
+
+if [ -z "${SERVICE}" ]; then
+    echo "No service specified"
+    exit 1
+fi
+
+if [ -z "${STACK_TYPE}" ]; then
+    echo "No stack type specified"
+    exit 1
+fi
+
+if [ -z "${COMMIT_ID}" ]; then
+    echo "No commit id specified"
+    exit 1
+fi
+
 TEMPLATE_BUCKET="$(aws cloudformation describe-stack-resources --stack-name new-pipeline --query 'StackResources[?LogicalResourceId==`CloudformationTemplateBucket`].PhysicalResourceId' --output text)"
 TEMPLATE_FILE="${1}"
 COMMIT_ID="$(git log -n 1 | grep commit | awk '{ print $2 }')"
