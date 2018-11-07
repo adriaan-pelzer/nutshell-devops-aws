@@ -120,7 +120,7 @@
                 "Code": {
                     "ZipFile": { "Fn::Join": [ "\n", [
                         "module.exports.handler = ( event, context, callback ) => {",
-                        "    console.log ( event );",
+                        "    console.log ( JSON.stringify ( event ) );",
                         "    return callback ( null, 'DONE' );",
                         "};"
                     ] ] }
