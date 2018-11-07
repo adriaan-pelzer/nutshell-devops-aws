@@ -147,7 +147,7 @@
                 "Path": "/",
                 "Policies": [
                     {
-                        "PolicyName": { "Fn::Join": [ "-", [ { "Ref": "ServiceName" }, "codebuild-project-policy" ] ] },
+                        "PolicyName": "new-pipeline-codebuild-project-policy",
                         "PolicyDocument": {
                             "Version": "2012-10-17",
                             "Statement": [
