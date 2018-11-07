@@ -80,7 +80,17 @@
                 },
                 "Name": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "codebuild-project" ] ] },
                 "ServiceRole": { "Fn::GetAtt": [ "CodeBuildProjectRole", "Arn" ] },
-                "Source": { "Type": "CODEPIPELINE" }
+                "Source": {
+                    "BuildSpec": { "Fn::Join": [ "\n", [
+                        "version: 0.2",
+                        "",
+                        "phases:",
+                        "  build:",
+                        "    commands:",
+                        "      - if [ -f build.sh ]; then; /bin/bash build.sh; else; echo 'No build.sh found'; fi"
+                    ] ] },
+                    "Type": "CODEPIPELINE"
+                }
             }
         },
         "PipelineRole": {
@@ -211,6 +221,7 @@
                             {
                                 "Name": "DeployAction",
                                 "InputArtifacts": [ { "Name": "SourceOutput" }, { "Name": "BuildOutput" } ],
+                                "OutputArtifacts": [ { "Name": "DeployOutput" } ].
                                 "ActionTypeId": {
                                     "Category": "Deploy",
                                     "Owner": "AWS",
@@ -222,8 +233,12 @@
                                     "ActionMode": "REPLACE_ON_FAILURE",
                                     "RoleArn": { "Fn::GetAtt": [ "CloudformationRole", "Arn" ] },
                                     "Capabilities": "CAPABILITY_NAMED_IAM",
-                                    "TemplateConfiguration": "BuildOutput::cfn-config.json",
-                                    "TemplatePath": "SourceOutput::cfn-template.json"
+                                    "TemplatePath": "SourceOutput::cfn-template.json",
+                                    "ParameterOverrides": {
+                                        "Platform": { "Ref": "Platform" },
+                                        "Service": { "Ref": "Service" }
+                                    },
+                                    "OutputFileName": "cfn-outputs.json"
                                 }
                             }
                         ]
