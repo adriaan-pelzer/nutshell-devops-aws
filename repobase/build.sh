@@ -7,7 +7,7 @@ echo "running cloudformation deployment"
 /bin/bash ./cfn-deploy.sh
 
 echo "populate repo"
-REPONAME="${PLATFORM}-${SERVICE}-repository"
+REPONAME="${PLATFORM}-${SERVICE}"
 CLONEURL="$(aws codecommit get-repository --repository-name ${REPONAME} --query 'repositoryMetadata.cloneUrlSsh' --output text)"
 
 if [ "$?" == "0" ]; then
