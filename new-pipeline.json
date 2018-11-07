@@ -118,9 +118,75 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Code": {
+                    {
+                        "Records": [
+                            {
+                                "awsRegion": "eu-west-1",
+                                "codecommit": {
+                                    "references": [
+                                        {
+                                            "commit": "b25d117941af07f0e38b26350188ddf39b056847",
+                                            "ref": "refs/heads/master"
+                                        }
+                                    ]
+                                },
+                                "eventId": "5027a7ae-b122-4d20-abab-ae47f494cfd4",
+                                "eventName": "ReferenceChanges",
+                                "eventPartNumber": 1,
+                                "eventSource": "aws:codecommit",
+                                "eventSourceARN": "arn:aws:codecommit:eu-west-1:296024228272:new-pipeline",
+                                "eventTime": "2018-11-07T13:20:09.740+0000",
+                                "eventTotalParts": 1,
+                                "eventTriggerConfigId": "0608536e-ae7d-4605-9a00-414ae1e2d555",
+                                "eventTriggerName": "new-pipeline-trigger",
+                                "eventVersion": "1.0",
+                                "userIdentityARN": "arn:aws:iam::296024228272:user/adriaan.pelzer"
+                            }
+                        ]
+                    },
+                    {
+                        "Records": [
+                            {
+                                "awsRegion": "eu-west-1",
+                                "codecommit": {
+                                    "references": [
+                                        {
+                                            "commit": "b25d117941af07f0e38b26350188ddf39b056847",
+                                            "created": true,
+                                            "ref": "refs/tags/test-tag-hallo"
+                                        }
+                                    ]
+                                },
+                                "eventId": "a248cd5c-6896-4e0a-b568-54d0a32e1e8a",
+                                "eventName": "ReferenceChanges",
+                                "eventPartNumber": 1,
+                                "eventSource": "aws:codecommit",
+                                "eventSourceARN": "arn:aws:codecommit:eu-west-1:296024228272:new-pipeline",
+                                "eventTime": "2018-11-07T13:24:40.244+0000",
+                                "eventTotalParts": 1,
+                                "eventTriggerConfigId": "0608536e-ae7d-4605-9a00-414ae1e2d555",
+                                "eventTriggerName": "new-pipeline-trigger",
+                                "eventVersion": "1.0",
+                                "userIdentityARN": "arn:aws:iam::296024228272:user/adriaan.pelzer"
+                            }
+                        ]
+                    },
                     "ZipFile": { "Fn::Join": [ "\n", [
                         "module.exports.handler = ( event, context, callback ) => {",
-                        "    console.log ( JSON.stringify ( event ) );",
+                        "    const tags = ( event.Records || [] ).find (",
+                        "        Record => ( ( Record.codecommit || {} ).references || [] ).find (",
+                        "            reference => reference.ref.match ( '/tags/' )",
+                        "        )",
+                        "    ).map (",
+                        "        reference => reference.ref.split ( '/' ) ).map (",
+                        "            ( [ refs, tags, tag ] ) => tag ).map (",
+                        "                tag => tag.split ( '-' )",
+                        "            ).map (",
+                        "                ( [ Platform, Service, StackType ] ) => ( { Platform, Service, StackType } )",
+                        "            )",
+                        "        )",
+                        "    );",
+                        "    console.log ( JSON.stringify ( tags ) );",
                         "    return callback ( null, 'DONE' );",
                         "};"
                     ] ] }
