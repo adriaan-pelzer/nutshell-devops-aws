@@ -136,7 +136,7 @@ echo "    validation succeeded"
 PARAMETERS="$(${AWSVALIDATE} --query "Parameters[*].ParameterKey" --output text | sed -e 'y/\t/ /')"
 CAPABILITIES="$(${AWSVALIDATE} --query "Capabilities[*]" --output text | sed -e 'y/\t/ /')"
 
-STACKNAME="${parameters[Platform]}-${parameters[Service]}-stack"
+STACKNAME="${parameters[Platform]}-${parameters[Service]}-pipeline"
 CHANGESETNAME="changeset-${COMMIT_ID}"
 PARAMETERSTRING="$(build_parameter_string ${PARAMETERS})"
 CAPABILITYSTRING="$(build_capability_string ${CAPABILITIES})"
@@ -174,7 +174,7 @@ if [ "$?" != "0" ]; then
         exit 1
     fi
 
-    if [[ ${STATE} == ROLLBACK* ]]; then
+    if [[ ${STATE} == ROLLBACK* ]] || [[ ${STATE} == *ROLLBACK* ]]; then
         echo "*** stack creation rolled back"
         exit 1
     fi
@@ -234,8 +234,8 @@ if [[ ${STATE} == *_FAILED ]]; then
     exit 1
 fi
 
-if [[ ${STATE} == ROLLBACK* ]]; then
-    echo "    changeset execution rolled back"
+if [[ ${STATE} == ROLLBACK* ]] || [[ ${STATE} == *ROLLBACK* ]]; then
+    echo "*** changeset execution rolled back"
     exit 1
 fi
 

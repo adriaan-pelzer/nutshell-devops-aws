@@ -1,12 +1,11 @@
 #!/bin/bash
 
 echo "creating new template set"
-aws s3 cp templates/* s3://${CFN_TEMPLATE_BUCKET}/${COMMIT_ID}/templates/
+aws s3 cp templates/* s3://${CFN_TEMPLATE_BUCKET}/${COMMIT_ID}/templates/ || exit 1
 
 echo "running cloudformation deployment"
-/bin/bash ./cfn-deploy.sh
+/bin/bash ./cfn-deploy.sh || exit 1
 
-echo "populate repo"
 REPONAME="${PLATFORM}-${SERVICE}"
 CLONEURL="$(aws codecommit get-repository --repository-name ${REPONAME} --query 'repositoryMetadata.cloneUrlSsh' --output text)"
 

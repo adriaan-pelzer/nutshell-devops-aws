@@ -87,7 +87,17 @@
                         "phases:",
                         "  build:",
                         "    commands:",
-                        "      - if [ -f build.sh ]; then; /bin/bash build.sh; else; echo 'No build.sh found'; fi"
+                        { "Fn::Join": [ "", [
+                            "      - echo '{\"Parameters\":{\"Platform\":\"",
+                            { "Ref": "Platform" },
+                            "\",\"Service\":\"",
+                            { "Ref": "Service" },
+                            "\"}}' > cfn-config.json"
+                        ] ] },
+                        "      - if [ -f build.sh ]; then /bin/bash build.sh; else echo 'No build.sh found'; fi",
+                        "artifacts:",
+                        "  files:",
+                        "    - 'cfn-*.json'"
                     ] ] },
                     "Type": "CODEPIPELINE"
                 }
@@ -152,11 +162,10 @@
                                         { "Ref": "AWS::AccountId" },
                                         { "Fn::Join": [ "/", [
                                             "stack",
-                                            { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "stack" ] ] },
+                                            { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" } ] ] },
                                             "*"
                                         ] ] }
-                                    ] ] }
-                                    ,
+                                    ] ] },
                                     "Effect": "Allow"
                                 },
                                 {
@@ -229,15 +238,12 @@
                                     "Provider": "CloudFormation"
                                 },
                                 "Configuration": {
-                                    "StackName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" }, "stack" ] ] },
+                                    "StackName": { "Fn::Join": [ "-", [ { "Ref": "Platform" }, { "Ref": "Service" } ] ] },
                                     "ActionMode": "REPLACE_ON_FAILURE",
                                     "RoleArn": { "Fn::GetAtt": [ "CloudformationRole", "Arn" ] },
                                     "Capabilities": "CAPABILITY_NAMED_IAM",
+                                    "TemplateConfiguration": "BuildOutput::cfn-config.json",
                                     "TemplatePath": "SourceOutput::cfn-template.json",
-                                    "ParameterOverrides": {
-                                        "Platform": { "Ref": "Platform" },
-                                        "Service": { "Ref": "Service" }
-                                    },
                                     "OutputFileName": "cfn-outputs.json"
                                 }
                             }
@@ -267,7 +273,15 @@
                             "Version": "2012-10-17",
                             "Statement": [
                                 {
-                                    "Action": [ "iam:DeleteRolePolicy" ],
+                                    "Action": [
+                                        "s3:CreateBucket",
+                                        "s3:DeleteBucket",
+                                        "codebuild:DeleteProject",
+                                        "codepipeline:DeletePipeline",
+                                        "events:RemoveTargets",
+                                        "iam:DeleteRole",
+                                        "iam:DeleteRolePolicy"
+                                    ],
                                     "Resource": "*",
                                     "Effect": "Allow"
                                 },
